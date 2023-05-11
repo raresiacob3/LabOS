@@ -9,8 +9,12 @@
 #include <pwd.h>
 #include <grp.h>
 #include <fnmatch.h>
+#include <fcntl.h>
 
 #define options 20
+#define MAX_ARGS 100
+#define MAX_CMD_LENGTH 200
+#define MAX_FILE_EXT 10
 
 void menu(char file_type)
 {
@@ -171,13 +175,10 @@ void reg_handle(char *path, char type, char *opt)
                 printf("Exec - %s\n", (info.st_mode & S_IXOTH) ? "yes" : "no");
             }
 
-            break;
+            // break;
         }
-    }while (opt != NULL);
+    } while (opt != NULL);
 }
-
-    
-
 
 void dir_handle(char *path, char type, char *opt)
 {
@@ -256,33 +257,9 @@ void dir_handle(char *path, char type, char *opt)
 
                     printf("Number of .c files: %d\n", count);
                 }
-                //     if (count && fnmatch("*.c", entry->d_name, 0) == 0) {
-                // ocurr++;
-                //     }
-                // printf("\n");
-                //  if (count) {
-                //     printf("Total number of .c files: %d\n", count);
             }
             break;
         }
-
-        //     if (size) {
-        //         printf("%ld\t", info.st_size);
-        //     }
-
-        //     if (access) {
-        //         printf((S_ISDIR(info.st_mode)) ? "d" : "-");
-        //         printf((info.st_mode & S_IRUSR) ? "r" : "-");
-        //         printf((info.st_mode & S_IWUSR) ? "w" : "-");
-        //         printf((info.st_mode & S_IXUSR) ? "x" : "-");
-        //         printf((info.st_mode & S_IRGRP) ? "r" : "-");
-        //         printf((info.st_mode & S_IWGRP) ? "w" : "-");
-        //         printf((info.st_mode & S_IXGRP) ? "x" : "-");
-        //         printf((info.st_mode & S_IROTH) ? "r" : "-");
-        //         printf((info.st_mode & S_IWOTH) ? "w" : "-");
-        //         printf((info.st_mode & S_IXOTH) ? "x" : "-");
-        //         printf("\t");
-        //     }
 
     } while (opt != NULL);
 }
@@ -324,50 +301,50 @@ void sym_handle(const char *path, char type, char *opt)
                 break;
             }
         }
-         switch (type)
+        switch (type)
+        {
+        case 's':
+            if (strchr(opt, 'n'))
             {
-            case 's':
-                if (strchr(opt, 'n'))
-                {
-                    printf("Symbolic link name: %s\n", path);
-                }
-                if (strchr(opt, 'a'))
-                {
-                    // print access rights
-                    printf((S_ISLNK(info.st_mode)) ? "l" : "-");
-                    printf((info.st_mode & S_IRUSR) ? "r" : "-");
-                    printf((info.st_mode & S_IWUSR) ? "w" : "-");
-                    printf((info.st_mode & S_IXUSR) ? "x" : "-");
-                    printf((info.st_mode & S_IRGRP) ? "r" : "-");
-                    printf((info.st_mode & S_IWGRP) ? "w" : "-");
-                    printf((info.st_mode & S_IXGRP) ? "x" : "-");
-                    printf((info.st_mode & S_IROTH) ? "r" : "-");
-                    printf((info.st_mode & S_IWOTH) ? "w" : "-");
-                    printf((info.st_mode & S_IXOTH) ? "x" : "-");
-                    printf("\n");
-                }
-                if (strchr(opt, 'd'))
-                {
-                     printf("Symbolic link size: %ld bytes\n", info.st_size);
-                }
+                printf("Symbolic link name: %s\n", path);
+            }
+            if (strchr(opt, 'a'))
+            {
+                // print access rights
+                printf((S_ISLNK(info.st_mode)) ? "l" : "-");
+                printf((info.st_mode & S_IRUSR) ? "r" : "-");
+                printf((info.st_mode & S_IWUSR) ? "w" : "-");
+                printf((info.st_mode & S_IXUSR) ? "x" : "-");
+                printf((info.st_mode & S_IRGRP) ? "r" : "-");
+                printf((info.st_mode & S_IWGRP) ? "w" : "-");
+                printf((info.st_mode & S_IXGRP) ? "x" : "-");
+                printf((info.st_mode & S_IROTH) ? "r" : "-");
+                printf((info.st_mode & S_IWOTH) ? "w" : "-");
+                printf((info.st_mode & S_IXOTH) ? "x" : "-");
+                printf("\n");
+            }
+            if (strchr(opt, 'd'))
+            {
+                printf("Symbolic link size: %ld bytes\n", info.st_size);
+            }
 
-                if (strchr(opt, 't'))
-                {
-                    struct stat target_info;
+            if (strchr(opt, 't'))
+            {
+                struct stat target_info;
 
-                    if (stat(path, &target_info) < 0)
-                    {
-                        printf("Error: Could not get information for target file of symbolic link %s.\n", path);
-                    }
-                    else
-                    {
-                        printf("Target file size: %ld bytes\n", target_info.st_size);
-                    }
+                if (stat(path, &target_info) < 0)
+                {
+                    printf("Error: Could not get information for target file of symbolic link %s.\n", path);
                 }
-
-                if (strchr(opt, 'l'))
+                else
                 {
-                    if (unlink(path) < 0)
+                    printf("Target file size: %ld bytes\n", target_info.st_size);
+                }
+            }
+
+            if (strchr(opt, 'l'))
+            {
+                if (unlink(path) < 0)
                 {
                     printf("Error: Could not delete symbolic link %s.\n", path);
                     return;
@@ -377,101 +354,366 @@ void sym_handle(const char *path, char type, char *opt)
                     printf("Symbolic link %s deleted.\n", path);
                     return;
                 }
-                }
+            }
+        }
 
-    } 
-    // if (delete)
-    // {
-    //     if (unlink(path) < 0)
-    //     {
-    //         printf("Error: Could not delete symbolic link %s.\n", path);
-    //         return;
-    //     }
-    //     else
-    //     {
-    //         printf("Symbolic link %s deleted.\n", path);
-    //         return;
-    //     }
-    // }
+    } while (opt != NULL);
+}
 
-    // if (name)
-    // {
-    //     printf("Symbolic link name: %s\n", path);
-    // }
+int execute_script(char *filename)
+{
+    // Execute script to compile the file and print number of errors and warnings
+    char cmd[MAX_CMD_LENGTH];
+    sprintf(cmd, "gcc -Wall -Werror %s 2>&1 | grep -iE '(warning|error)'", filename);
+    FILE *fp = popen(cmd, "r");
+    if (fp == NULL)
+    {
+        perror("Error executing script");
+        exit(EXIT_FAILURE);
+    }
 
-    // if (size)
-    // {
-    //     printf("Symbolic link size: %ld bytes\n", info.st_size);
-    // }
+    char line[MAX_CMD_LENGTH];
+    int num_warnings = 0;
+    int num_errors = 0;
+    while (fgets(line, MAX_CMD_LENGTH, fp) != NULL)
+    {
+        if (strstr(line, "warning") != NULL)
+        {
+            num_warnings++;
+        }
+        else if (strstr(line, "error") != NULL)
+        {
+            num_errors++;
+        }
+    }
 
-    // if (target_size)
-    // {
-    //     struct stat target_info;
+    int exit_code = pclose(fp);
+    if (exit_code == -1)
+    {
+        perror("Error closing pipe");
+        exit(EXIT_FAILURE);
+    }
 
-    //     if (stat(path, &target_info) < 0)
-    //     {
-    //         printf("Error: Could not get information for target file of symbolic link %s.\n", path);
-    //     }
-    //     else
-    //     {
-    //         printf("Target file size: %ld bytes\n", target_info.st_size);
-    //     }
-    // }
+    printf("Compile result for %s: %d errors, %d warnings\n", filename, num_errors, num_warnings);
+    return (num_errors << 8) | num_warnings;
+}
 
-    // if (access)
-    // {
-    //     printf((S_ISLNK(info.st_mode)) ? "l" : "-");
-    //     printf((info.st_mode & S_IRUSR) ? "r" : "-");
-    //     printf((info.st_mode & S_IWUSR) ? "w" : "-");
-    //     printf((info.st_mode & S_IXUSR) ? "x" : "-");
-    //     printf((info.st_mode & S_IRGRP) ? "r" : "-");
-    //     printf((info.st_mode & S_IWGRP) ? "w" : "-");
-    //     printf((info.st_mode & S_IXGRP) ? "x" : "-");
-    //     printf((info.st_mode & S_IROTH) ? "r" : "-");
-    //     printf((info.st_mode & S_IWOTH) ? "w" : "-");
-    //     printf((info.st_mode & S_IXOTH) ? "x" : "-");
-    //     printf("\n");
-    // }
-}while (opt != NULL);
+void reg_script(const char *path, const char *opt)
+{
+    int fd = open(path, O_RDONLY);
+    if (fd == -1)
+    {
+        perror("Failed to open file");
+        exit(EXIT_FAILURE);
+    }
+
+    int num_lines = 0;
+    char c;
+    while (read(fd, &c, 1) > 0)
+    {
+        if (c == '\n')
+        {
+            num_lines++;
+        }
+    }
+
+    printf("%s: %d lines\n", path, num_lines);
+    close(fd);
+}
+
+void dir_script(const char *path, const char *opt)
+{
+    char filename[100];
+    sprintf(filename, "%s_file.txt", path);
+    int fd = open(filename, O_CREAT | O_WRONLY, 0644);
+    if (fd == -1)
+    {
+        perror("Failed to create file");
+        exit(EXIT_FAILURE);
+    }
+
+    char *message = "This file was created by the program\n";
+    write(fd, message, strlen(message));
+
+    close(fd);
+}
+
+void sym_script(const char *path, const char *opt)
+{
+    if (chmod(path, S_IRUSR | S_IWUSR | S_IXUSR | S_IWGRP | S_IRGRP) == -1)
+    {
+        perror("Failed to change permissions");
+        exit(EXIT_FAILURE);
+    }
+}
+
+// int compute_score(int exit_code) {
+//    int num_errors = exit_code >> 8;
+//     int num_warnings = exit_code & 0xFF;
+//     int score = 0;
+//     if (num_errors == 0 && num_warnings == 0) {
+//         score = 10;
+//     }
+//     else if (num_errors > 0) {
+//         score = 1;
+//     }
+//     else if (num_warnings > 10) {
+//         score = 2;
+//     }
+//     else {
+//         score = 2 + 8 * (10 - num_warnings) / 10;
+//     }
+//     return score;
+// }
+
+int has_c_extension(const char *filename)
+{
+    const char *extension = strrchr(filename, '.');
+    if (extension == NULL)
+    {
+        return 0;
+    }
+    return strcmp(extension, ".c") == 0;
+}
+
+int count_lines(char *filename)
+{
+    FILE *fp;
+    int count = 0;
+    char ch;
+
+    fp = fopen(filename, "r");
+    if (fp == NULL)
+    {
+        printf("Error: Unable to open file %s\n", filename);
+        return -1;
+    }
+
+    while ((ch = fgetc(fp)) != EOF)
+    {
+        if (ch == '\n')
+        {
+            count++;
+        }
+    }
+
+    fclose(fp);
+
+    return count;
 }
 
 int main(int argc, char *argv[])
 {
-    char type;
-    // char *path[1000];
-    // char type ;
-    // char *opt ;
 
-    // if (argc < 3)
-    // {
-    //     perror("Error for number of arguments");
-    //     exit(-1);
+    if (argc < 2)
+    {
+        printf("Usage: %s <file1> <file2> ... <fileN>\n", argv[0]);
+        return EXIT_FAILURE;
+    }
 
-    // }
+    pid_t child_pid, wait_pid;
+    int status;
 
     for (int i = 1; i < argc; i++)
     {
+        char file_type = get_file_type(argv[i]);
+        char opt[options];
 
-        type = get_file_type(argv[i]);
-        if (type == 'r')
+        if (file_type == 'r')
         {
-            char opt[options];
-            reg_handle(argv[i], type, opt);
+            child_pid = fork();
+            if (child_pid == -1)
+            {
+                printf("Failed to fork child process\n");
+                return EXIT_FAILURE;
+            }
+            else if (child_pid == 0)
+            {
+                reg_handle(argv[i], file_type, opt);
+                return EXIT_SUCCESS;
+            }
         }
-        if (type == 'd')
+        else if (file_type == 'd')
         {
-            char opt[options];
-            dir_handle(argv[i], type, opt);
+            child_pid = fork();
+            if (child_pid == -1)
+            {
+                printf("Failed to fork child process\n");
+                return EXIT_FAILURE;
+            }
+            else if (child_pid == 0)
+            {
+                dir_handle(argv[i], file_type, opt);
+                return EXIT_SUCCESS;
+            }
         }
-        if (type == 's')
+        else if (file_type == 's')
         {
-            char opt[options];
-            sym_handle(argv[i], type, opt);
-        } 
+            child_pid = fork();
+            if (child_pid == -1)
+            {
+                printf("Failed to fork child process\n");
+                return EXIT_FAILURE;
+            }
+            else if (child_pid == 0)
+            {
+                sym_handle(argv[i], file_type, opt);
+                return EXIT_SUCCESS;
+            }
+        }
+
+        // Handle regular files with .c extension in a separate child process
+        if (file_type == 'r' && has_c_extension(argv[i]))
+        {
+            child_pid = fork();
+            if (child_pid == -1)
+            {
+                printf("Failed to fork child process\n");
+                return EXIT_FAILURE;
+            }
+            else if (child_pid == 0)
+            {
+                // Execute script and get output
+                char cmd[100];
+                sprintf(cmd, "gcc -Wall -Wextra %s 2>&1 | grep -E '(warning|error)' | tee /dev/tty", argv[i]);
+                FILE *script_output = popen(cmd, "r");
+
+                // Parse output to count errors and warnings
+                int num_errors = 0;
+                int num_warnings = 0;
+                char line[100];
+                while (fgets(line, sizeof(line), script_output))
+                {
+                    if (strstr(line, "error"))
+                    {
+                        num_errors++;
+                    }
+                    else if (strstr(line, "warning"))
+                    {
+                        num_warnings++;
+                    }
+                }
+                printf("%s: %d errors, %d warnings\n", argv[i], num_errors, num_warnings);
+                // Calculate score based on errors and warnings
+                int score = 0;
+                if (num_errors == 0 && num_warnings == 0)
+                {
+                    score = 10;
+                }
+                else if (num_errors >= 1)
+                {
+                    score = 1;
+                }
+                else if (num_warnings > 10)
+                {
+                    score = 2;
+                }
+                else
+                {
+                    score = 2 + 8 * (10 - num_warnings) / 10;
+                }
+
+                // Write score to file
+                char filename[100];
+                sprintf(filename, "grades.txt");
+                FILE *grades_file = fopen(filename, "a");
+                fprintf(grades_file, "%s: %d\n", argv[i], score);
+                fclose(grades_file);
+
+                return EXIT_SUCCESS;
+            }
+        }
     }
 
-    return 0;
+    for (int i = 1; i < argc; i++)
+    {
+        char file_type = get_file_type(argv[i]);
 
-    // reg_handle(path, type, opt );
-    //  menu(type);
+        if (file_type == 'r' && !has_c_extension(argv[i]))
+        {
+            child_pid = fork();
+            if (child_pid == -1)
+            {
+                printf("Failed to fork child process\n");
+                return EXIT_FAILURE;
+            }
+            else if (child_pid == 0)
+            {
+                reg_script(argv[i], NULL);
+                return EXIT_SUCCESS;
+            }
+        }
+    }
+    for (int i = 1; i < argc; i++) {
+    char file_type = get_file_type(argv[i]);
+
+    if (file_type == 'd') {
+        child_pid = fork();
+        if (child_pid == -1) {
+            printf("Failed to fork child process\n");
+            return EXIT_FAILURE;
+        } else if (child_pid == 0) {
+            dir_script(argv[i], NULL);
+            return EXIT_SUCCESS;
+        }
+    }
+}
+
+// Handle symbolic links in a separate child process
+for (int i = 1; i < argc; i++) {
+    char file_type = get_file_type(argv[i]);
+
+    if (file_type == 's') {
+        child_pid = fork();
+        if (child_pid == -1) {
+            printf("Failed to fork child process\n");
+            return EXIT_FAILURE;
+        } else if (child_pid == 0) {
+            sym_script(argv[i], NULL);
+            return EXIT_SUCCESS;
+        }
+    }
+}
+    // int num_processes = 0;
+    // char pids[1000];
+    //  for (int i = 1; i < argc; i++) {
+    //     char file_type = get_file_type(argv[i]);
+
+    //     if (file_type == 'r' && !has_c_extension(argv[i])) {
+    //         child_pid = fork();
+    //         if (child_pid == -1) {
+    //             perror("Failed to create child process");
+    //             exit(EXIT_FAILURE);
+    //         } else if (child_pid == 0) {
+    //             // Child process
+    //             int num_lines = count_lines(argv[i]);
+    //             printf("File %s has %d lines\n", argv[i], num_lines);
+    //             exit(EXIT_SUCCESS);
+    //         } else {
+    //             // Parent process
+    //             pids[num_processes++] = child_pid;
+    //         }
+    //     }
+
+    // Wait for child processes to finish
+    while ((wait_pid = wait(&status)) > 0)
+    {
+        if (WIFEXITED(status))
+        {
+            printf("Child process %d exited with status %d\n", wait_pid, WEXITSTATUS(status));
+        }
+        else if (WIFSIGNALED(status))
+        {
+            printf("Child process %d was terminated by signal %d\n", wait_pid, WTERMSIG(status));
+        }
+        else if (WIFSTOPPED(status))
+        {
+            printf("Child process %d was stopped by signal %d\n", wait_pid, WSTOPSIG(status));
+        }
+        else
+        {
+            printf("Unexpected status received for child process %d\n", wait_pid);
+        }
+    }
+    return EXIT_SUCCESS;
 }
